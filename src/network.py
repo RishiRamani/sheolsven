@@ -3,11 +3,16 @@ import socket
 
 
 def connect(host: str, port: int):
-    context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
-    # Deliberately weak legacy configuration
-    context.minimum_version = ssl.TLSVersion.TLSv1
-    context.set_ciphers("AES128-SHA")
+    context.minimum_version = ssl.TLSVersion.TLSv1_3
+    context.maximum_version = ssl.TLSVersion.TLSv1_3
+
+    context.load_default_certs()
 
     sock = socket.create_connection((host, port))
-    return context.wrap_socket(sock, server_hostname=host)
+
+    return context.wrap_socket(
+        sock,
+        server_hostname=host
+    )

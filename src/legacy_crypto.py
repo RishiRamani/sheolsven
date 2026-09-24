@@ -1,40 +1,30 @@
-from Crypto.Cipher import DES, DES3
-from Crypto.Hash import MD5, SHA1
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_v1_5
-import hashlib
+from Crypto.Cipher import PKCS1_OAEP
 
 
-# Legacy symmetric encryption
-DES_KEY = b"8bytekey"
-
-def encrypt_des(data: bytes) -> bytes:
-    cipher = DES.new(DES_KEY, DES.MODE_ECB)
-    padded = data + b"\x00" * ((8 - len(data) % 8) % 8)
-    return cipher.encrypt(padded)
+AES_KEY = bytes.fromhex(
+    "9f86d081884c7d659a2feaa0c55ad015"
+    "a3bf4f1b2b0b822cd15d6c15b0f00a08"
+)
 
 
-# Legacy 3DES
-TRIPLE_DES_KEY = b"123456789012345678901234"
+def encrypt_data(data: bytes) -> bytes:
+    cipher = AES.new(AES_KEY, AES.MODE_GCM)
+    ciphertext, tag = cipher.encrypt_and_digest(data)
 
-def encrypt_3des(data: bytes) -> bytes:
-    cipher = DES3.new(TRIPLE_DES_KEY, DES3.MODE_ECB)
-    padded = data + b"\x00" * ((8 - len(data) % 8) % 8)
-    return cipher.encrypt(padded)
+    return cipher.nonce + tag + ciphertext
 
 
-# Weak hashes
-def md5_hash(data: str) -> str:
-    return hashlib.md5(data.encode()).hexdigest()
+def sha256_hash(data: str) -> str:
+    return SHA256.new(data.encode()).hexdigest()
 
 
-def sha1_hash(data: str) -> str:
-    return hashlib.sha1(data.encode()).hexdigest()
+# Stronger RSA configuration
+RSA_KEY = RSA.generate(3072)
 
-
-# Weak RSA key
-RSA_KEY = RSA.generate(1024)
 
 def rsa_encrypt(data: bytes) -> bytes:
-    cipher = PKCS1_v1_5.new(RSA_KEY.publickey())
+    cipher = PKCS1_OAEP.new(RSA_KEY.publickey())
     return cipher.encrypt(data)

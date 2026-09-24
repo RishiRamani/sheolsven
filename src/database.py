@@ -1,13 +1,13 @@
 from Crypto.Cipher import AES
+import os
 
-# Static / hardcoded encryption material
-AES_KEY = b"0123456789abcdef"
-AES_IV = b"abcdef9876543210"
+
+AES_KEY = os.urandom(32)
 
 
 def encrypt_record(record: bytes) -> bytes:
-    cipher = AES.new(AES_KEY, AES.MODE_CBC, AES_IV)
+    cipher = AES.new(AES_KEY, AES.MODE_GCM)
 
-    padded = record + b"\x00" * ((16 - len(record) % 16) % 16)
+    ciphertext, tag = cipher.encrypt_and_digest(record)
 
-    return cipher.encrypt(padded)
+    return cipher.nonce + tag + ciphertext
